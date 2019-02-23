@@ -21,88 +21,91 @@ source("functions.R")
 #
 ###############################################################
 
-# download_statscan <- function(tbl_num){
-#   tmp <- tempfile()
-#   
-#   url <- paste0("https://www150.statcan.gc.ca/n1/en/tbl/csv/", tbl_num, "-eng.zip" )
-#   
-#   download.file(url,tmp)
-#   
-#   tbl_data <- read.csv(unz(tmp,paste0(tbl_num,".csv")),check.names = FALSE)
-#   # For some reason, downloading CSV's from StatsCan always have the "REF_DATE" 
-#   # column with random characters in frot, but it's always the first column.
-#   colnames(tbl_data)[1] <- "REF_DATE"
-#   return(tbl_data)
-# }  
-
 # Should add something that check is we need to downlaod again or not
 
-# CPI_INDEX <-download_statscan("18100004")
-# CPI_Weights <- download_statscan("18100007")  
+last_month <-  max(as.yearmon(read.csv("data/CPI.csv")$REF_DATE))  
 
+if( (as.yearmon(Sys.Date()) - last_month) >= 2){
 
-# This is a big table with each base year need to pick one, 2002= 100 has all the history (other don't), so we will pick those observations
-# and we are onlt interested in national aggregates so only keeping rows with GEO == Canada
-# for size reasons and since looking at inflation pre and post targeting doesn't often provide meaningfull insights, I will limit the sample
-# to after 1991
-# We only need the the date, product and value. explinations of the other columns can be found at:
-# https://www.statcan.gc.ca/eng/developers/csv/user-guide
-
-
-# I will focusing on the CPI-55 top level catagories most often focused on. These catagories comprise the inputs for the 3 core measures so 
-# they are the most worth exploring (note: need to Keep All-Items)
-
-top_55 <- c('v41690976', 'v41690987', 'v41690992', 'v41691000',
-            'v41691010', 'v41691020', 'v41691029', 'v41691046',
-            'v41691051', 'v41691056', 'v41691057', 'v41691058',
-            'v41691059', 'v41691060', 'v41691061', 'v41691063',
-            'v41691064', 'v41691065', 'v41691066', 'v41691069',
-            'v41691072', 'v41691075', 'v41691078', 'v41691081',
-            'v41691089', 'v41691093', 'v41691097', 'v41691107',
-            'v41691109', 'v41691113', 'v41691118', 'v41691123',
-            'v41691132', 'v41691133', 'v41691134', 'v41691136',
-            'v41691137', 'v41691140', 'v41691147', 'v41691150',
-            'v41713463', 'v41713464', 'v41691164', 'v41691169',
-            'v41691172', 'v41691180', 'v41691181', 'v41691184',
-            'v41691190', 'v41691193', 'v41691198', 'v41691202',
-            'v41691208', 'v41691212', 'v41691216', 'v41690973') # v41690973 is All-items 
-
-names <- as.character(unique(CPI_INDEX[which(CPI_INDEX$VECTOR %in% top_55),"Products and product groups"]))
-
-CPI_INDEX_2002 <- CPI_INDEX[which(CPI_INDEX$UOM == "2002=100"& CPI_INDEX$GEO == "Canada" & CPI_INDEX$VECTOR %in% top_55),
-                            c("REF_DATE","Products and product groups","VALUE")]
-
-CPI_INDEX_2002$REF_DATE <- as.yearmon(CPI_INDEX_2002$REF_DATE,format="%Y-%m")
+  CPI_INDEX <-download_statscan("18100004")
+  
+  
+  # This is a big table with each base year need to pick one, 2002= 100 has all the history (other don't), so we will pick those observations
+  # and we are onlt interested in national aggregates so only keeping rows with GEO == Canada
+  # for size reasons and since looking at inflation pre and post targeting doesn't often provide meaningfull insights, I will limit the sample
+  # to after 1991
+  # We only need the the date, product and value. explinations of the other columns can be found at:
+  # https://www.statcan.gc.ca/eng/developers/csv/user-guide
+  
+  
+  # I will focusing on the CPI-55 top level catagories most often focused on. These catagories comprise the inputs for the 3 core measures so 
+  # they are the most worth exploring (note: need to Keep All-Items)
+  
+  top_55 <- c('v41690976', 'v41690987', 'v41690992', 'v41691000',
+              'v41691010', 'v41691020', 'v41691029', 'v41691046',
+              'v41691051', 'v41691056', 'v41691057', 'v41691058',
+              'v41691059', 'v41691060', 'v41691061', 'v41691063',
+              'v41691064', 'v41691065', 'v41691066', 'v41691069',
+              'v41691072', 'v41691075', 'v41691078', 'v41691081',
+              'v41691089', 'v41691093', 'v41691097', 'v41691107',
+              'v41691109', 'v41691113', 'v41691118', 'v41691123',
+              'v41691132', 'v41691133', 'v41691134', 'v41691136',
+              'v41691137', 'v41691140', 'v41691147', 'v41691150',
+              'v41713463', 'v41713464', 'v41691164', 'v41691169',
+              'v41691172', 'v41691180', 'v41691181', 'v41691184',
+              'v41691190', 'v41691193', 'v41691198', 'v41691202',
+              'v41691208', 'v41691212', 'v41691216', 'v41690973') # v41690973 is All-items 
+  
+  names <- as.character(unique(CPI_INDEX[which(CPI_INDEX$VECTOR %in% top_55),"Products and product groups"]))
+  
+  CPI_INDEX_2002 <- CPI_INDEX[which(CPI_INDEX$UOM == "2002=100"& CPI_INDEX$GEO == "Canada" & CPI_INDEX$VECTOR %in% top_55),
+                              c("REF_DATE","Products and product groups","VALUE")]
+  write.csv(CPI_INDEX_2002,"data/CPI.csv",row.names = FALSE)
+  CPI_INDEX_2002$REF_DATE <- as.yearmon(CPI_INDEX_2002$REF_DATE,format="%Y-%m")
+   
+  CPI_INDEX_2002<- spread(CPI_INDEX_2002,`Products and product groups`,VALUE)
+  
  
-CPI_INDEX_2002<- spread(CPI_INDEX_2002,`Products and product groups`,VALUE)
+  
+} else {
+  CPI_INDEX_2002 <- read.csv("data/CPI.csv",check.names = FALSE)
+  CPI_INDEX_2002$REF_DATE <- as.yearmon(CPI_INDEX_2002$REF_DATE,format="%Y-%m")
+  CPI_INDEX_2002<- spread(CPI_INDEX_2002,`Products and product groups`,VALUE)
+} 
+  
 
- 
-CPI_INDEX.xts <- as.xts(CPI_INDEX_2002[,-1],CPI_INDEX_2002[,1])["1992-01-01/"]
+  CPI_INDEX.xts <- as.xts(CPI_INDEX_2002[,-1],CPI_INDEX_2002[,1])["1992-01-01/"]
+  
+  CPI_INDEX.xts <- CPI_INDEX.xts[,names]
+  
+  rm(CPI_INDEX_2002)
 
-CPI_INDEX.xts <- CPI_INDEX.xts[,names]
+  
+  ############################################
+  #                                          #
+  #    Setting up the weights data frame     #
+  #                                          #
+  ############################################
+if(as.yearmon(Sys.Date()) - last_month >= 2){
+  CPI_Weights <- download_statscan("18100007")  
+  
+  CPI_Weights_canada <- CPI_Weights[which(CPI_Weights$GEO == "Canada" & 
+                                     CPI_Weights$`Price period of weight` =="Weight at basket link month prices" &
+                                     CPI_Weights$`Products and product groups` %in% colnames(CPI_INDEX.xts) &
+                                     CPI_Weights$`Geographic distribution of weight` =="Distribution to selected geographies"),
+                              c("REF_DATE","Products and product groups","VALUE")]
+  write.csv(CPI_Weights_canada,file = "data/WEIGHTS.csv",row.names = FALSE)
+  CPI_Weights_canada$REF_DATE <- as.yearmon(CPI_Weights_canada$REF_DATE,format="%Y-%m")
+  
+  CPI_Weights_canada<- spread(CPI_Weights_canada,`Products and product groups`,VALUE)
+  
+} else {
+  CPI_Weights_canada <- read.csv("data/WEIGHTS.csv",check.names = FALSE)
+  CPI_Weights_canada$REF_DATE <- as.yearmon(CPI_Weights_canada$REF_DATE,format="%Y-%m")
+  CPI_Weights_canada<- spread(CPI_Weights_canada,`Products and product groups`,VALUE)
+}  
 
-rm(CPI_INDEX_2002)
-
-
-############################################
-#                                          #
-#    Setting up the weights data frame     #
-#                                          #
-############################################
-
-
-CPI_Weights_canada <- CPI_Weights[which(CPI_Weights$GEO == "Canada" & 
-                                   CPI_Weights$`Price period of weight` =="Weight at basket link month prices" &
-                                   CPI_Weights$`Products and product groups` %in% colnames(CPI_INDEX.xts) &
-                                   CPI_Weights$`Geographic distribution of weight` =="Distribution to selected geographies"),
-                            c("REF_DATE","Products and product groups","VALUE")]
-
-CPI_Weights_canada$REF_DATE <- as.yearmon(CPI_Weights_canada$REF_DATE,format="%Y-%m")
-
-CPI_Weights_canada<- spread(CPI_Weights_canada,`Products and product groups`,VALUE)
-
-
-CPI_Weights.xts <- as.xts(CPI_Weights_canada[,-1],CPI_Weights_canada[,1])
+  CPI_Weights.xts <- as.xts(CPI_Weights_canada[,-1],CPI_Weights_canada[,1])
 
 
 # since this is essentially a toy example and some of the measures that are now in the the CPI-55 didn't previously exists, 
@@ -160,91 +163,3 @@ rm(tmp)
 
 
 
-
-
-# ind_sub <- function(base,choices,indexs,refValues,Weights){
-#   
-#   
-#   
-#   sub <- vector("numeric",dim(refValues)[1])
-#   
-#   for(i in 1:length(choices)){
-#     
-#     sub <- sub + as.data.frame(indexs[,choices[i]]*Weights[,choices[i]]/refValues[,choices[i]])  
-#     
-#   }
-#   
-#   IND <- base - as.xts(sub,index(base))
-#   W = 100 - apply(Weights[,choices],1,"sum")
-#   con <- IND/W
-#   
-#   refVal <- vector("numeric",dim(refValues)[1])
-#   
-#   refVal[1] <- 100
-#   
-#   for(i in 2:length(refVal)){
-#     if(as.numeric(refValues[i,"All-items"])==as.numeric(refValues[i-1,"All-items"])){
-#       refVal[i] <- refVal[i-1]
-#     }
-#     else{
-#       refVal[i]<- con[i-1]*refVal[i-1]
-#       
-#     }
-#     
-#   }
-#   
-#   target <- Delt(con*refVal,k=12)*100
-#   all_items <- Delt(indexs[,"All-items"],k=12)*100
-#   finish <-cbind(all_items,target)
-#   colnames(finish) <- c("All Items", "Target")
-#   
-#   
-#   return(finish)
-#   
-# }  
-
-# ind_add <- function(choices,indexs,refValues,Weights){
-#   
-#   
-#   
-#   sub <- vector("numeric",dim(refValues)[1])
-#   
-#   for(i in 1:length(choices)){
-#     
-#     sub <- sub + as.data.frame(indexs[,choices[i]]*Weights[,choices[i]]/refValues[,choices[i]])  
-#     
-#   }
-#   
-#   IND <- as.xts(sub,index(indexs))
-#   W = apply(Weights[,choices],1,"sum")
-#   con <- IND/W
-#   
-#   refVal <- vector("numeric",dim(refValues)[1])
-#   
-#   refVal[1] <- 100
-#   
-#   for(i in 2:length(refVal)){
-#     if(as.numeric(refValues[i,"All-items"])==as.numeric(refValues[i-1,"All-items"])){
-#       refVal[i] <- refVal[i-1]
-#     }
-#     else{
-#       refVal[i]<- con[i-1]*refVal[i-1]
-#       
-#     }
-#     
-#   }
-#   
-#   target <- Delt(con*refVal,k=12)*100
-#   all_items <- Delt(indexs[,"All-items"],k=12)*100
-#   finish <-cbind(all_items,target)
-#   colnames(finish) <- c("All Items", "Target")
-#   
-#   
-#   return(finish)
-#   
-# }  
-#   
-# test <- ind_sub(CPI_INDEX.xts$`All-items`*100/RV$`All-items`,choices = c("Electricity","Gasoline"),indexs = CPI_INDEX.xts,refValues = RV,Weights = CPI_Weights.xts)
-# 
-# 
-# dygraph(test)

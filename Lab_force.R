@@ -9,9 +9,11 @@
 library(plyr)
 library(tidyr)
 library(xts)
-library(dygraphs)
-library(quantmod)
 library(stats)
+library(dplyr)
+library(leaflet)
+library(sf)
+library(rmapshaper)
 
 source("functions.R")
 
@@ -24,38 +26,56 @@ source("functions.R")
 
 
 # Should add something that check is we need to downlaod again or not
+last_month <- max(as.yearmon(read.csv("data/LFS_Table_clean_an.csv")$REF_DATE,format ="%Y-%m"))    
 
-# LFS_Table <-download_statscan("14100287")
+if(as.yearmon(Sys.Date()) - last_month >= 2){
+  LFS_Table <-download_statscan("14100287")
+      
+    ######
+  #
+  # For this example we will only look at the largest, adjusted provincial aggregates. 
+  # other tables will have breakdowns by industry and other socioeconomic,
+  # characteristics. The micro file would also allow for further deatialed analysis
+  #
+  ######
+  
+  LFS_Table_clean <- LFS_Table[which(LFS_Table$GEO != "Canada" &
+                                     LFS_Table$Statistics == "Estimate" &
+                                     LFS_Table$`Age group` == "15 years and over" &
+                                     LFS_Table$`Data type` == "Seasonally adjusted" &
+                                     LFS_Table$Sex == "Both sexes"),
+                               c("REF_DATE","GEO","Labour force characteristics","VALUE")]
+  
+  
+  LFS_Table_clean_an <- LFS_Table_clean
+  write.csv(LFS_Table_clean_an,"data/LFS_Table_clean_an.csv",row.names = FALSE)
+  LFS_Table_clean_an$REF_DATE <- as.numeric(substr(LFS_Table_clean_an$REF_DATE,1,4))
+  
+  lab_chars <- unique(LFS_Table_clean_an$`Labour force characteristics`)
+  
+  LFS_Table_clean_an <- aggregate(LFS_Table_clean_an$VALUE,
+                    list(LFS_Table_clean_an$REF_DATE,LFS_Table_clean_an$GEO,LFS_Table_clean$`Labour force characteristics`),
+                    mean)
+  
+  
+  colnames(LFS_Table_clean_an) <- c("year","GEO","Labour force characteristics","VALUE")
 
-######
-#
-# For this example we will only look at the largest, adjusted provincial aggregates. 
-# other tables will have breakdowns by industry and other socioeconomic,
-# characteristics. The micro file would also allow for further deatialed analysis
-#
-######
+} else{
+  LFS_Table_clean_an <- read.csv("data/LFS_Table_clean_an.csv",check.names = FALSE)
+  LFS_Table_clean_an$REF_DATE <- as.numeric(substr(LFS_Table_clean_an$REF_DATE,1,4))
+  
+  lab_chars <- unique(LFS_Table_clean_an$`Labour force characteristics`)
+  
+  LFS_Table_clean_an <- aggregate(LFS_Table_clean_an$VALUE,
+                                  list(LFS_Table_clean_an$REF_DATE,LFS_Table_clean_an$GEO,LFS_Table_clean$`Labour force characteristics`),
+                                  mean)
+  
+  
+  colnames(LFS_Table_clean_an) <- c("year","GEO","Labour force characteristics","VALUE")
+  
+}
 
-LFS_Table_clean <- LFS_Table[which(LFS_Table$GEO != "Canada" &
-                                   LFS_Table$Statistics == "Estimate" &
-                                   LFS_Table$`Age group` == "15 years and over" &
-                                   LFS_Table$`Data type` == "Seasonally adjusted" &
-                                   LFS_Table$Sex == "Both sexes"),
-                             c("REF_DATE","GEO","Labour force characteristics","VALUE")]
-
-
-LFS_Table_clean_an <- LFS_Table_clean
-LFS_Table_clean_an$REF_DATE <- substr(LFS_Table_clean_an$REF_DATE,1,4)
-
-lab_chars <- unique(LFS_Table_clean_an$`Labour force characteristics`)
-
-LFS_Table_clean_an <- aggregate(LFS_Table_clean_an$VALUE,
-                  list(LFS_Table_clean_an$REF_DATE,LFS_Table_clean_an$GEO,LFS_Table_clean$`Labour force characteristics`),
-                  mean)
-
-
-colnames(LFS_Table_clean_an) <- c("year","GEO","Labour force characteristics","VALUE")
-
-
+  
 tmp <- st_read("data/gpr_000a11a_e.shp")
 tmp$PRNAME <- tmp$PRENAME
 tmp$PRFNAME <- tmp$PRENAME

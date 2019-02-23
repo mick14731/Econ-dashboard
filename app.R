@@ -1,9 +1,4 @@
 library(shiny)  
-library(dygraphs)
-library(dplyr)
-library(leaflet)
-library(sf)
-library(rmapshaper)
 source("functions.R")
 source("cpi maker.R")
 source("Lab_force.R")
@@ -125,8 +120,8 @@ server <- shinyServer(function(input, output,session) {
   })
   
   observe({
-    data <- get_data()  
-    leafletProxy('labour', data = data) %>%
+    l_data <- get_data()  
+    leafletProxy('labour', data = l_data) %>%
       clearGroup('polygons') %>%
       addPolygons(group = 'polygons',
                   fillColor = ~pal()(VALUE),
