@@ -26,9 +26,11 @@ source("functions.R")
 
 # Should add something that check is we need to downlaod again or not
 last_month <- max(as.yearmon(read.csv("data/LFS_Table_clean_an.csv")$REF_DATE,format ="%Y-%m"))    
+# if( 12*as.numeric((as.yearmon(Sys.Date()) - last_month)) >= 2)
 
-if(as.yearmon(Sys.Date()) - last_month >= 2){
-  LFS_Table <-download_statscan("14100287")
+if( 12*as.numeric((as.yearmon(Sys.Date()) - last_month)) >= 2){
+
+    LFS_Table <-download_statscan("14100287")
       
     ######
   #
@@ -75,7 +77,7 @@ if(as.yearmon(Sys.Date()) - last_month >= 2){
 }
 
   
-tmp <- st_read("data/gpr_000a11a_e.shp")
+tmp <- st_read("data/gpr_000b11a_e.shp")
 tmp$PRNAME <- tmp$PRENAME
 tmp$PRFNAME <- tmp$PRENAME
 tmp$PRFABBR <- tmp$PREABBR  
@@ -111,3 +113,4 @@ names(ranges) <- lab_chars
 for(mes in lab_chars){
   ranges[[mes]] <- range(LFS_Table_clean_an[which(LFS_Table_clean_an$`Labour force characteristics` == mes), "VALUE"],na.rm = TRUE)
 }
+

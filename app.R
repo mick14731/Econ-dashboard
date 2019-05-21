@@ -39,9 +39,9 @@ ui <- shinyUI(fluidPage(
                                 selected = "Unemployment rate",
                                 multiple=FALSE,
                                 options = list(placeholder = "Labour measure")),
-                 sliderInput("year",h3("Select year or push play button"),
+                 sliderInput("year",h3("Select year:"),
                              min = 1976, max = 2018, step = 1, value = 2000,
-                             animate = TRUE)),
+                             animate = FALSE)),
                
                mainPanel(leafletOutput("labour"))
              

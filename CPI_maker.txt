@@ -3,6 +3,8 @@
 ## Script purpose: visializing custom CPI aggregate indexs 
 ## Date: Feb 2nd 2019 
 ## Author: Mitchell Hughes
+## this code is part of the project which can be found here
+## https://github.com/mick14731/Econ-dashboard.git
 ##################################################
 
 
@@ -24,9 +26,8 @@ source("functions.R")
 # Should add something that check is we need to downlaod again or not
 
 last_month <-  max(as.yearmon(read.csv("data/CPI.csv")$REF_DATE))  
-# if( 12*as.numeric((as.yearmon(Sys.Date()) - last_month)) >= 2)
-# 
-if( 12*as.numeric(as.yearmon(Sys.Date()) - last_month) >= 2){
+
+if( (as.yearmon(Sys.Date()) - last_month) >= 2){
 
   CPI_INDEX <-download_statscan("18100004")
   
@@ -87,8 +88,7 @@ if( 12*as.numeric(as.yearmon(Sys.Date()) - last_month) >= 2){
   #    Setting up the weights data frame     #
   #                                          #
   ############################################
-
-if( 12*as.numeric(as.yearmon(Sys.Date()) - last_month) >= 2){
+if(as.yearmon(Sys.Date()) - last_month >= 2){
   CPI_Weights <- download_statscan("18100007")  
   
   CPI_Weights_canada <- CPI_Weights[which(CPI_Weights$GEO == "Canada" & 
